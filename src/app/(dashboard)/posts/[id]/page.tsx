@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { requireAuth } from '@/lib/auth/admin';
 import { RetroCard } from '@/components/ui/RetroCard';
 import { RetroButton } from '@/components/ui/RetroButton';
-import { RetroInput, RetroTextArea } from '@/components/ui/RetroInput';
+import { RetroTextArea } from '@/components/ui/RetroInput';
 import { VoteControls } from '@/components/VoteControls';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';

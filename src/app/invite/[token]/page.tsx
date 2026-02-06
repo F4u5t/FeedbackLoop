@@ -1,10 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { RetroCard } from '@/components/ui/RetroCard';
 import { RetroButton } from '@/components/ui/RetroButton';
-import { RetroInput } from '@/components/ui/RetroInput';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 
 export default async function InvitePage({ params }: { params: { token: string } }) {
   const supabase = createServerSupabaseClient();
@@ -51,7 +48,7 @@ export default async function InvitePage({ params }: { params: { token: string }
     );
   }
 
-  async function acceptInvite(formData: FormData) {
+  async function acceptInvite(_formData: FormData) {
     'use server';
 
     const supabase = createServerSupabaseClient();

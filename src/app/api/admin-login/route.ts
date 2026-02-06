@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Now sign in
-      const { data: retrySignIn, error: retrySignInErr } = await supabase.auth.signInWithPassword({
+      const { error: retrySignInErr } = await supabase.auth.signInWithPassword({
         email: ADMIN_EMAIL,
         password: ADMIN_PASSWORD,
       });

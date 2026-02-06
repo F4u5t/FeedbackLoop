@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useOptimistic } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import React, { useState } from 'react';
 
 interface VoteControlsProps {
   postId: string;

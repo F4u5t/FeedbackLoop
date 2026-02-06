@@ -1,10 +1,8 @@
 import { requireAuth } from '@/lib/auth/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { RetroCard } from '@/components/ui/RetroCard';
-import { RetroInput } from '@/components/ui/RetroInput';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { RetroTextArea } from '@/components/ui/RetroInput';
-import { RetroModal } from '@/components/ui/RetroSelect';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 

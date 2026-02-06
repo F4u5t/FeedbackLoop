@@ -5,7 +5,6 @@ import { VoteControls } from '@/components/VoteControls';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Suspense } from 'react';
-import type { PostWithMeta } from '@/lib/types/database';
 
 async function FeedContent() {
   await requireAuth();

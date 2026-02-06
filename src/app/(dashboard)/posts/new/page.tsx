@@ -2,13 +2,13 @@ import { requireAuth } from '@/lib/auth/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { RetroCard } from '@/components/ui/RetroCard';
 import { RetroButton } from '@/components/ui/RetroButton';
-import { RetroInput, RetroTextArea } from '@/components/ui/RetroInput';
+import { RetroInput } from '@/components/ui/RetroInput';
 import { TipTapEditor } from '@/components/TipTapEditor';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 export default async function NewPostPage() {
-  const user = await requireAuth();
+  await requireAuth();
 
   async function createPost(formData: FormData) {
     'use server';

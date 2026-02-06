@@ -36,7 +36,7 @@ export default async function AdminInvitesPage({
       .select('*')
       .eq('email', email)
       .eq('status', 'pending')
-      .single();
+      .single() as { data: any };
 
     if (existing) {
       // Show existing invite link

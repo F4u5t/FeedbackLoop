@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { RetroInput } from '@/components/ui/RetroInput';
-import { useRouter } from 'next/navigation';
 
 const ADMIN_EMAIL = 'admin@feedbackloop.dev';
 const ADMIN_PASSWORD = 'admin123';
@@ -13,7 +12,6 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
-  const router = useRouter();
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +45,7 @@ export default function AdminLoginPage() {
       setStatus('Authenticated! Redirecting...');
       // The API route has set the auth cookies, just redirect
       window.location.href = data.redirect || '/feed';
-    } catch (err) {
+    } catch {
       setError('Connection failed. Make sure dev server is running.');
       setLoading(false);
       setStatus('');

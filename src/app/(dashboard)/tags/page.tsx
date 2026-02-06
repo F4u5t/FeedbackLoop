@@ -2,8 +2,6 @@ import { requireAuth } from '@/lib/auth/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { RetroCard } from '@/components/ui/RetroCard';
 import { RetroButton } from '@/components/ui/RetroButton';
-import { RetroInput } from '@/components/ui/RetroInput';
-import { redirect } from 'next/navigation';
 
 export default async function TagsPage() {
   const user = await requireAuth();

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { Notification } from '@/lib/types/database';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
