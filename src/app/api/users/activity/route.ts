@@ -10,8 +10,8 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Update last_activity_at using raw SQL to avoid type issues
-    await supabase.rpc('update_user_activity', { user_id: user.id }).catch(() => {
+    // Update last_activity_at using RPC function
+    await (supabase.rpc as any)('update_user_activity', { user_id: user.id }).catch(() => {
       // Fallback: If the function doesn't exist yet, ignore
       console.log('Activity tracking not yet configured');
     });
