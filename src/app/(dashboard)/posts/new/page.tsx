@@ -18,8 +18,16 @@ export default async function NewPostPage() {
     const contentHtml = formData.get('contentHtml') as string;
     const tags = formData.getAll('tags') as string[];
 
-    if (!title || !content) {
+    if (!title) {
       return;
+    }
+
+    let parsedContent;
+    try {
+      parsedContent = content ? JSON.parse(content) : {};
+    } catch (e) {
+      console.error('Failed to parse content:', e);
+      parsedContent = {};
     }
 
     const supabase = createServerSupabaseClient();
@@ -35,7 +43,7 @@ export default async function NewPostPage() {
       .insert({
         author_id: user.id,
         title,
-        content: JSON.parse(content),
+        content: parsedContent,
         content_html: contentHtml,
       } as any)
       .select()
@@ -43,7 +51,7 @@ export default async function NewPostPage() {
 
     if (postError || !post) {
       console.error('Post creation error:', postError);
-      return;
+      throw new Error(postError?.message || 'Failed to create post');
     }
 
     // Add tags if any
