@@ -1,20 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { RetroInput } from '@/components/ui/RetroInput';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+function InviteStatusBanner() {
+  const searchParams = useSearchParams();
+  const inviteStatus = searchParams.get('invite');
+  const inviteEmail = searchParams.get('email');
+
+  if (inviteStatus !== 'sent' && inviteStatus !== 'error') {
+    return null;
+  }
+
+  return (
+    <>
+      {inviteStatus === 'sent' && (
+        <div className="text-terminal-green text-xs mb-4">
+          ✓ Invite accepted. Magic link sent{inviteEmail ? ` to ${inviteEmail}` : ''}.
+        </div>
+      )}
+      {inviteStatus === 'error' && (
+        <div className="text-terminal-red text-xs mb-4">
+          ✗ Unable to process invite. Please try again or contact an admin.
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
-  const searchParams = useSearchParams();
-  const inviteStatus = searchParams.get('invite');
-  const inviteEmail = searchParams.get('email');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,16 +95,9 @@ export default function LoginPage() {
             ┌─── SYSTEM LOGIN ───────────────────────┐
           </div>
 
-          {inviteStatus === 'sent' && (
-            <div className="text-terminal-green text-xs mb-4">
-              ✓ Invite accepted. Magic link sent{inviteEmail ? ` to ${inviteEmail}` : ''}.
-            </div>
-          )}
-          {inviteStatus === 'error' && (
-            <div className="text-terminal-red text-xs mb-4">
-              ✗ Unable to process invite. Please try again or contact an admin.
-            </div>
-          )}
+          <Suspense fallback={null}>
+            <InviteStatusBanner />
+          </Suspense>
 
           {!sent ? (
             <form onSubmit={handleLogin} className="space-y-4">
