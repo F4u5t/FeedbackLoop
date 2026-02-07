@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NotificationBell } from '@/components/NotificationBell';
 import { OnlineUsers } from '@/components/OnlineUsers';
+import { ActivityTracker } from '@/components/ActivityTracker';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -14,12 +15,6 @@ async function DashboardHeader() {
     .select('*')
     .eq('id', user.id)
     .single()) as any;
-
-  // Update last_activity_at
-  await supabase
-    .from('profiles')
-    .update({ last_activity_at: new Date().toISOString() } as any)
-    .eq('id', user.id);
 
   return (
     <header className="border-b border-terminal-border bg-terminal-darkgray p-4 sticky top-0 z-40">
@@ -87,6 +82,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="min-h-screen bg-terminal-black">
+      <ActivityTracker />
       <Suspense fallback={null}>
         <DashboardHeader />
       </Suspense>
