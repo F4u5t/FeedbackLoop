@@ -1,11 +1,18 @@
 import { requireAuth } from '@/lib/auth/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { RetroCard } from '@/components/ui/RetroCard';
+import { MessagesPageClient } from './MessagesPageClient';
 import Link from 'next/link';
 
 export default async function MessagesPage() {
   const user = await requireAuth();
   const supabase = createServerSupabaseClient();
+
+  // Fetch all users except current user
+  const { data: allUsers } = (await supabase
+    .from('profiles')
+    .select('id, username, display_name, avatar_url')
+    .neq('id', user.id)) as any;
 
   // Get distinct conversations
   const { data: conversations } = await supabase
@@ -38,37 +45,40 @@ export default async function MessagesPage() {
   const uniqueConversations = Array.from(convMap.values());
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-terminal-green font-bold text-lg mb-2">=[[ MESSAGES ]]=</h2>
-        <p className="text-terminal-dim text-xs">Direct messages with other users</p>
-      </div>
+    <MessagesPageClient
+      currentUserId={user.id}
+      conversations={uniqueConversations}
+      allUsers={allUsers || []}
+    />
+  );
+}
 
-      <div className="space-y-2">
-        {uniqueConversations.length > 0 ? (
-          uniqueConversations.map((conv: any) => (
-            <Link key={conv.userId} href={`/messages/${conv.userId}`}>
-              <RetroCard className="cursor-pointer hover:border-terminal-green transition-colors">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-terminal-green font-bold text-sm">
-                      {conv.profile?.display_name || conv.profile?.username}
-                    </p>
-                    <p className="text-terminal-dim text-xs truncate">{conv.lastMessage}</p>
-                  </div>
-                  {conv.unread && (
-                    <span className="bg-terminal-green text-terminal-black text-xs px-2 py-0.5 rounded">
-                      NEW
-                    </span>
-                  )}
+function MessagesPageContent({ conversations }: { conversations: any[] }) {
+  return (
+    <div className="space-y-2">
+      {conversations.length > 0 ? (
+        conversations.map((conv: any) => (
+          <Link key={conv.userId} href={`/messages/${conv.userId}`}>
+            <RetroCard className="cursor-pointer hover:border-terminal-green transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-terminal-green font-bold text-sm">
+                    {conv.profile?.display_name || conv.profile?.username}
+                  </p>
+                  <p className="text-terminal-dim text-xs truncate">{conv.lastMessage}</p>
                 </div>
-              </RetroCard>
-            </Link>
-          ))
-        ) : (
-          <p className="text-terminal-dim text-xs">No conversations yet</p>
-        )}
-      </div>
+                {conv.unread && (
+                  <span className="bg-terminal-green text-terminal-black text-xs px-2 py-0.5 rounded">
+                    NEW
+                  </span>
+                )}
+              </div>
+            </RetroCard>
+          </Link>
+        ))
+      ) : (
+        <p className="text-terminal-dim text-xs">No conversations yet</p>
+      )}
     </div>
   );
 }

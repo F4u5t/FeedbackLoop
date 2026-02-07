@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { NotificationBell } from '@/components/NotificationBell';
+import { OnlineUsers } from '@/components/OnlineUsers';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -13,6 +14,13 @@ async function DashboardHeader() {
     .select('*')
     .eq('id', user.id)
     .single()) as any;
+
+  // Update last_activity_at
+  await supabase
+    .from('profiles')
+    .update({ last_activity_at: new Date().toISOString() })
+    .eq('id', user.id)
+    .throwOnError();
 
   return (
     <header className="border-b border-terminal-border bg-terminal-darkgray p-4 sticky top-0 z-40">
@@ -56,6 +64,23 @@ async function DashboardHeader() {
   );
 }
 
+async function OnlineUsersList() {
+  const user = await requireAuth();
+  const supabase = createServerSupabaseClient();
+
+  // Get users active in the last 5 minutes
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+  const { data: onlineUsers } = (await supabase
+    .from('profiles')
+    .select('id, username, display_name, avatar_url, last_activity_at')
+    .gt('last_activity_at', fiveMinutesAgo)
+    .neq('id', user.id)
+    .order('last_activity_at', { ascending: false })) as any;
+
+  return <OnlineUsers initialUsers={onlineUsers || []} currentUserId={user.id} />;
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -86,6 +111,10 @@ export default function DashboardLayout({
             <p>CONNECTED: ONLINE</p>
             <p>SESSION: ACTIVE</p>
           </div>
+
+          <Suspense fallback={<div className="mt-6 text-terminal-dim text-xs">Loading users...</div>}>
+            <OnlineUsersList />
+          </Suspense>
         </aside>
 
         {/* Main Content */}
