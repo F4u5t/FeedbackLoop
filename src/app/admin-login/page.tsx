@@ -3,52 +3,50 @@
 import React, { useState } from 'react';
 import { RetroButton } from '@/components/ui/RetroButton';
 import { RetroInput } from '@/components/ui/RetroInput';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
-const ADMIN_EMAIL = 'admin@feedbackloop.dev';
+const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'admin123';
 
 export default function AdminLoginPage() {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [status, setStatus] = useState('');
+  const router = useRouter();
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setStatus('');
 
-    if (password !== ADMIN_PASSWORD) {
-      setError('Invalid password');
+    // Verify hardcoded credentials
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+      setError('Invalid credentials');
       setLoading(false);
       return;
     }
 
     try {
-      setStatus('Authenticating...');
-      const response = await fetch('/api/admin-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
+      const supabase = createClient();
+      const email = `${username}@feedbackloop.local`;
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Login failed');
+      if (error) {
+        setError(error.message);
         setLoading(false);
-        setStatus('');
         return;
       }
 
-      setStatus('Authenticated! Redirecting...');
-      // The API route has set the auth cookies, just redirect
-      window.location.href = data.redirect || '/feed';
+      router.push('/feed');
     } catch {
-      setError('Connection failed. Make sure dev server is running.');
+      setError('Connection failed. Try again.');
       setLoading(false);
-      setStatus('');
     }
   };
 
@@ -57,20 +55,23 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md">
         <pre className="text-terminal-green text-xs sm:text-sm mb-8 text-center leading-tight">
 {`
- ╔═══════════════════════════════════════╗
- ║                                       ║
- ║   ███████╗███████╗███████╗██████╗     ║
- ║   ██╔════╝██╔════╝██╔════╝██╔══██╗   ║
- ║   █████╗  █████╗  █████╗  ██║  ██║   ║
- ║   ██╔══╝  ██╔══╝  ██╔══╝  ██║  ██║   ║
- ║   ██║     ███████╗███████╗██████╔╝    ║
- ║   ╚═╝     ╚══════╝╚══════╝╚═════╝     ║
- ║          BACK LOOP  v1.0              ║
- ║                                       ║
- ║   [ AI Dev Underground Network ]      ║
- ║   Trane Technologies  -  Bldg Ctrl    ║
- ║                                       ║
- ╚═══════════════════════════════════════╝
+ ╔════════════════════════════════════════════════════════════════════╗
+ ║                                                                    ║
+ ║  ███████╗███████╗███████╗██████╗ ██████╗  █████╗  ██████╗██╗  ██╗ ║
+ ║  ██╔════╝██╔════╝██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██║ ██╔╝ ║
+ ║  █████╗  █████╗  █████╗  ██║  ██║██████╔╝███████║██║     █████╔╝  ║
+ ║  ██╔══╝  ██╔══╝  ██╔══╝  ██║  ██║██╔══██╗██╔══██║██║     ██╔═██╗  ║
+ ║  ██║     ███████╗███████╗██████╔╝██████╔╝██║  ██║╚██████╗██║  ██╗ ║
+ ║  ╚═╝     ╚══════╝╚══════╝╚═════╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ ║
+ ║                                                                    ║
+ ║          ██╗      ██████╗  ██████╗ ██████╗                        ║
+ ║          ██║     ██╔═══██╗██╔═══██╗██╔══██╗                       ║
+ ║          ██║     ██║   ██║██║   ██║██████╔╝                       ║
+ ║          ██║     ██║   ██║██║   ██║██╔═══╝                        ║
+ ║          ███████╗╚██████╔╝╚██████╔╝██║                            ║
+ ║          ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝                            ║
+ ║                                                                    ║
+ ╚════════════════════════════════════════════════════════════════════╝
 `}
         </pre>
 
@@ -81,28 +82,27 @@ export default function AdminLoginPage() {
 
           <form onSubmit={handleAdminLogin} className="space-y-4">
             <div className="text-terminal-dim text-xs mb-4">
-              &gt; Enter admin password to access dashboard
-            </div>
-
-            <div className="bg-terminal-darkgray p-2 border border-terminal-border text-xs">
-              <p className="text-terminal-green">Email: <span className="text-terminal-amber">{ADMIN_EMAIL}</span></p>
+              &gt; Enter admin credentials to access dashboard
             </div>
 
             <RetroInput
-              label="ADMIN PASSWORD"
+              label="USERNAME"
+              type="text"
+              placeholder="admin"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              error={error}
+            />
+
+            <RetroInput
+              label="PASSWORD"
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              error={error}
             />
-
-            {status && (
-              <div className="text-terminal-amber text-xs animate-pulse">
-                &gt; {status}
-              </div>
-            )}
 
             <RetroButton
               type="submit"
