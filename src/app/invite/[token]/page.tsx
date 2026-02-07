@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { RetroCard } from '@/components/ui/RetroCard';
 import { RetroButton } from '@/components/ui/RetroButton';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 export default async function InvitePage({ params }: { params: { token: string } }) {
   const supabase = createServerSupabaseClient();
@@ -63,14 +64,21 @@ export default async function InvitePage({ params }: { params: { token: string }
 
     if (error) {
       console.error('Error initiating magic link:', error);
-      return;
+      redirect(`/login?invite=error`);
     }
 
     // Mark invite as accepted
-    await ((supabase as any)
+    const { error: updateError } = await ((supabase as any)
       .from('invites')
       .update({ status: 'accepted' })
       .eq('id', invite!.id));
+
+    if (updateError) {
+      console.error('Error updating invite status:', updateError);
+      redirect(`/login?invite=error`);
+    }
+
+    redirect(`/login?invite=sent&email=${encodeURIComponent(invite!.email)}`);
   }
 
   return (
@@ -78,22 +86,25 @@ export default async function InvitePage({ params }: { params: { token: string }
       <div className="w-full max-w-md">
         {/* ASCII Art Header */}
         <pre className="text-terminal-green text-xs sm:text-sm mb-8 text-center leading-tight">
-{`
- ╔═══════════════════════════════════════╗
- ║                                       ║
- ║   ███████╗███████╗███████╗██████╗     ║
- ║   ██╔════╝██╔════╝██╔════╝██╔══██╗   ║
- ║   █████╗  █████╗  █████╗  ██║  ██║   ║
- ║   ██╔══╝  ██╔══╝  ██╔══╝  ██║  ██║   ║
- ║   ██║     ███████╗███████╗██████╔╝    ║
- ║   ╚═╝     ╚══════╝╚══════╝╚═════╝     ║
- ║          BACK LOOP  v1.0              ║
- ║                                       ║
- ║   [ AI Dev Underground Network ]      ║
- ║   Trane Technologies  -  Bldg Ctrl    ║
- ║                                       ║
- ╚═══════════════════════════════════════╝
-`}
+      {`
+       ╔════════════════════════════════════════════════════════════════════╗
+       ║                                                                    ║
+       ║  ███████╗███████╗███████╗██████╗ ██████╗  █████╗  ██████╗██╗  ██╗ ║
+       ║  ██╔════╝██╔════╝██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██║ ██╔╝ ║
+       ║  █████╗  █████╗  █████╗  ██║  ██║██████╔╝███████║██║     █████╔╝  ║
+       ║  ██╔══╝  ██╔══╝  ██╔══╝  ██║  ██║██╔══██╗██╔══██║██║     ██╔═██╗  ║
+       ║  ██║     ███████╗███████╗██████╔╝██████╔╝██║  ██║╚██████╗██║  ██╗ ║
+       ║  ╚═╝     ╚══════╝╚══════╝╚═════╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ ║
+       ║                                                                    ║
+       ║          ██╗      ██████╗  ██████╗ ██████╗                        ║
+       ║          ██║     ██╔═══██╗██╔═══██╗██╔══██╗                       ║
+       ║          ██║     ██║   ██║██║   ██║██████╔╝                       ║
+       ║          ██║     ██║   ██║██║   ██║██╔═══╝                        ║
+       ║          ███████╗╚██████╔╝╚██████╔╝██║                            ║
+       ║          ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝                            ║
+       ║                                                                    ║
+       ╚════════════════════════════════════════════════════════════════════╝
+      `}
         </pre>
 
         <RetroCard variant="highlight">
