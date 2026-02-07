@@ -92,9 +92,9 @@ export default async function InvitePage({ params }: { params: { token: string }
   }
 
   if (invite.status === 'pending') {
-    await service
+    await (service as any)
       .from('invites')
-      .update({ status: 'accepted' } as import('@/lib/types/database').Database['public']['Tables']['invites']['Update'])
+      .update({ status: 'accepted' })
       .eq('id', invite.id);
   }
 
