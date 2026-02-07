@@ -18,9 +18,8 @@ async function DashboardHeader() {
   // Update last_activity_at
   await supabase
     .from('profiles')
-    .update({ last_activity_at: new Date().toISOString() })
-    .eq('id', user.id)
-    .throwOnError();
+    .update({ last_activity_at: new Date().toISOString() } as any)
+    .eq('id', user.id);
 
   return (
     <header className="border-b border-terminal-border bg-terminal-darkgray p-4 sticky top-0 z-40">

@@ -1,8 +1,6 @@
 import { requireAuth } from '@/lib/auth/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { RetroCard } from '@/components/ui/RetroCard';
 import { MessagesPageClient } from './MessagesPageClient';
-import Link from 'next/link';
 
 export default async function MessagesPage() {
   const user = await requireAuth();
@@ -50,35 +48,5 @@ export default async function MessagesPage() {
       conversations={uniqueConversations}
       allUsers={allUsers || []}
     />
-  );
-}
-
-function MessagesPageContent({ conversations }: { conversations: any[] }) {
-  return (
-    <div className="space-y-2">
-      {conversations.length > 0 ? (
-        conversations.map((conv: any) => (
-          <Link key={conv.userId} href={`/messages/${conv.userId}`}>
-            <RetroCard className="cursor-pointer hover:border-terminal-green transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-terminal-green font-bold text-sm">
-                    {conv.profile?.display_name || conv.profile?.username}
-                  </p>
-                  <p className="text-terminal-dim text-xs truncate">{conv.lastMessage}</p>
-                </div>
-                {conv.unread && (
-                  <span className="bg-terminal-green text-terminal-black text-xs px-2 py-0.5 rounded">
-                    NEW
-                  </span>
-                )}
-              </div>
-            </RetroCard>
-          </Link>
-        ))
-      ) : (
-        <p className="text-terminal-dim text-xs">No conversations yet</p>
-      )}
-    </div>
   );
 }
