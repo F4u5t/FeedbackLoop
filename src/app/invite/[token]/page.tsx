@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server';
 import { RetroCard } from '@/components/ui/RetroCard';
 import { RetroButton } from '@/components/ui/RetroButton';
 import Link from 'next/link';
@@ -49,37 +49,56 @@ export default async function InvitePage({ params }: { params: { token: string }
     );
   }
 
-  async function acceptInvite(_formData: FormData) {
-    'use server';
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return (
+      <div className="min-h-screen bg-terminal-black flex items-center justify-center p-4">
+        <RetroCard variant="danger" className="max-w-md w-full">
+          <h2 className="text-terminal-red font-bold mb-2">INVITE ERROR</h2>
+          <p className="text-terminal-dim text-xs mb-4">
+            The server is missing the service role key required to complete login. Contact an administrator.
+          </p>
+          <Link href="/login">
+            <RetroButton variant="ghost" className="w-full">RETURN TO LOGIN</RetroButton>
+          </Link>
+        </RetroCard>
+      </div>
+    );
+  }
 
-    const supabase = createServerSupabaseClient();
+  const service = createServiceRoleClient();
+  const { data: linkData, error: linkError } = await service.auth.admin.generateLink({
+    type: 'magiclink',
+    email: invite.email,
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+    },
+  });
 
-    // Trigger magic link flow for the invited email
-    const { error } = await supabase.auth.signInWithOtp({
-      email: invite!.email,
-      options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
-      },
-    });
+  if (linkError || !linkData?.properties?.action_link) {
+    console.error('Error generating magic link:', linkError);
+    return (
+      <div className="min-h-screen bg-terminal-black flex items-center justify-center p-4">
+        <RetroCard variant="danger" className="max-w-md w-full">
+          <h2 className="text-terminal-red font-bold mb-2">INVITE ERROR</h2>
+          <p className="text-terminal-dim text-xs mb-4">
+            Failed to generate a login link. Please try again or contact an administrator.
+          </p>
+          <Link href="/login">
+            <RetroButton variant="ghost" className="w-full">RETURN TO LOGIN</RetroButton>
+          </Link>
+        </RetroCard>
+      </div>
+    );
+  }
 
-    if (error) {
-      console.error('Error initiating magic link:', error);
-      redirect(`/login?invite=error`);
-    }
-
-    // Mark invite as accepted
-    const { error: updateError } = await ((supabase as any)
+  if (invite.status === 'pending') {
+    await service
       .from('invites')
       .update({ status: 'accepted' })
-      .eq('id', invite!.id));
-
-    if (updateError) {
-      console.error('Error updating invite status:', updateError);
-      redirect(`/login?invite=error`);
-    }
-
-    redirect(`/login?invite=sent&email=${encodeURIComponent(invite!.email)}`);
+      .eq('id', invite.id);
   }
+
+  redirect(linkData.properties.action_link);
 
   return (
     <div className="min-h-screen bg-terminal-black flex items-center justify-center p-4">
@@ -127,14 +146,9 @@ export default async function InvitePage({ params }: { params: { token: string }
               </p>
             </div>
 
-            <form action={acceptInvite} className="space-y-4">
-              <RetroButton
-                type="submit"
-                className="w-full"
-              >
-                ACCEPT INVITE
-              </RetroButton>
-            </form>
+            <div className="text-terminal-dim text-xs">
+              Redirecting you to a secure login link…
+            </div>
 
             <p className="text-terminal-dim text-xs text-center border-t border-terminal-border pt-3">
               This token expires {new Date(invite.expires_at).toLocaleDateString()}
