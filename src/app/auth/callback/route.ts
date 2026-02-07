@@ -6,9 +6,11 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
+  const tokenHash = searchParams.get('token_hash') ?? searchParams.get('token');
+  const type = searchParams.get('type');
   const next = searchParams.get('next') ?? '/feed';
 
-  if (code) {
+  if (code || (tokenHash && type)) {
     const cookieStore = cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,9 +30,21 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(new URL(next, request.url));
+    if (code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) {
+        return NextResponse.redirect(new URL(next, request.url));
+      }
+    }
+
+    if (tokenHash && type) {
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: type as 'magiclink' | 'signup' | 'recovery' | 'email_change',
+      });
+      if (!error) {
+        return NextResponse.redirect(new URL(next, request.url));
+      }
     }
   }
 
